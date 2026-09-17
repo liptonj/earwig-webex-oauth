@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+  Earwig — Webex OAuth bounce page.
+
+  Why this file exists: the Webex developer portal will not register a custom URL scheme as an
+  integration's redirect URI ("A URI must begin with a protocol identifier followed with ://"),
+  and ASWebAuthenticationSession cannot intercept an http(s) callback — its completion handler
+  fires only on a custom-scheme match. So Webex redirects here, and this page forwards the
+  untouched query string on to us.5ls.earwig://webex-oauth, which the app does intercept.
+
+  Publish this at a stable https URL and register THAT URL as the integration's redirect URI.
+  The same URL must be pasted into Settings › Webex, or Webex rejects the token exchange with
+  redirect_uri_mismatch.
+
+  It is deliberately self-contained: no scripts, styles, fonts or images are fetched from
+  anywhere, so the authorization code is never handed to a third party. The referrer is
+  suppressed so the code cannot leak through a Referer header either. The code is single-use and
+  useless without the PKCE verifier and the client secret, both of which stay on the Mac.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Returning to Earwig…</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        margin: 0; min-height: 100vh; display: grid; place-items: center;
+        padding: 24px; text-align: center;
+      }
+      main { max-width: 32rem; }
+      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+      p { margin: 0 0 1rem; opacity: 0.8; }
+      a { display: inline-block; padding: 0.5rem 1rem; }
+      .err { display: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 id="title">Returning to Earwig…</h1>
+      <p id="detail">You can close this window once Earwig comes back to the front.</p>
+      <p class="err" id="fallback"><a id="link" href="#">Open Earwig</a></p>
+    </main>
+    <script>
+      (function () {
+        var target = "us.5ls.earwig://webex-oauth" + window.location.search;
+        var params = new URLSearchParams(window.location.search);
+
+        // Webex reports a refused consent as ?error=…; forward it anyway so the app can show a
+        // real reason instead of sitting on an open sheet until the user cancels.
+        if (params.has("error")) {
+          document.getElementById("title").textContent = "Webex did not grant access";
+          document.getElementById("detail").textContent =
+            params.get("error_description") || params.get("error");
+        } else if (!params.has("code")) {
+          document.getElementById("title").textContent = "Nothing to hand back";
+          document.getElementById("detail").textContent =
+            "This page is the redirect target for Earwig's Webex sign-in. Open it from Earwig, not directly.";
+          return;
+        }
+
+        var link = document.getElementById("link");
+        link.href = target;
+        // Some browsers only follow a custom scheme after a user gesture; reveal the manual
+        // route shortly after, in case the automatic hand-off was blocked.
+        window.setTimeout(function () {
+          document.getElementById("fallback").style.display = "block";
+        }, 1500);
+
+        window.location.replace(target);
+      })();
+    </script>
+  </body>
+</html>
