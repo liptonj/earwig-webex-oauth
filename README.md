@@ -3,7 +3,7 @@
 The OAuth redirect (bounce) page for [Earwig](https://github.com/liptonj/earwig), a
 local-first, bot-free meeting transcription app for macOS.
 
-Live at **<https://liptonj.github.io/earwig-webex-oauth/>**.
+Live at **<https://liptonj.github.io/earwig-webex-oauth>**.
 
 ## Why this exists
 

@@ -8,11 +8,15 @@
   fires only on a custom-scheme match. So Webex redirects here, and this page forwards the
   untouched query string on to us.5ls.earwig://webex-oauth, which the app does intercept.
 
-  Published at https://liptonj.github.io/earwig-webex-oauth/ (from the public mirror repo
+  Published at https://liptonj.github.io/earwig-webex-oauth (from the public mirror repo
   liptonj/earwig-webex-oauth, whose index.html is a copy of this file — change it here first).
-  That URL is `WebexOAuthConfig.defaultRedirectURI` and the Settings prefill, and it is what must
-  be registered as the integration's redirect URI. All three must match byte for byte, or Webex
-  rejects the token exchange with redirect_uri_mismatch.
+  That URL is `WebexOAuthConfig.defaultRedirectURI` and the Settings prefill, and it is what is
+  registered as the integration's redirect URI. All three must match byte for byte, or Webex
+  rejects the token exchange with redirect_uri_mismatch — including the absence of a trailing
+  slash. GitHub Pages answers the slashless path with a 301 to the directory form and preserves
+  the query string, so this page still receives code/state; that redirect is a browser hop and
+  does nothing for the exchange, where Webex compares the registered string to the submitted one
+  without fetching either.
 
   It is deliberately self-contained: no scripts, styles, fonts or images are fetched from
   anywhere, so the authorization code is never handed to a third party. The referrer is
